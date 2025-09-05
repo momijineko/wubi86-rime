@@ -1,0 +1,164 @@
+# Rime schema settings
+# encoding: utf-8
+
+schema:
+  schema_id: wubi86
+  name: "五筆型"
+  version: "0.20"
+  author:
+    - 發明人 王永民先生
+  description: |
+    五筆字型86版
+    碼表源自 ibus-table
+    敲 z 鍵進入拼音反查
+  dependencies:
+    - pinyin_simp
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 西文 ]
+  - name: full_shape
+    reset: 0
+    states: [ 半角, 全角 ]
+  - name: zh_trad
+    reset: 0
+    states: [ 通打, 繁出 ]
+  - name: ascii_punct
+    states: [ 句讀, 符號 ]
+  - name: extended_charset
+    reset: 1
+   # states: [ 通用, 增廣 ]
+  - options: [ utf8, gbk, gb2312, big5 ]
+    states:	  
+    - UTF8
+    - GBK
+    - GB2312
+    - BIG5
+    reset: 2 #加上这句默认就是GB2312
+
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - reverse_lookup_translator
+    - table_translator
+  filters:
+    - charset_filter@gb2312
+    - charset_filter@gbk
+    - charset_filter@utf8
+    - charset_filter@big5
+    - simplifier
+    - uniquifier
+
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcba
+  delimiter: " ;'"
+  max_code_length: 4
+  auto_select: true
+  auto_clear: max_length      #max_length/auto/manual
+  auto_select_unique_candidate: true
+ # algebra:
+   # - xform/工/a/
+   # - xform/子/b/
+ #   - xform/又/c/
+  #  - xform/大/d/
+  #  - xform/月/e/
+   # - xform/土/f/
+   # - xform/王/g/
+   # - xform/目/h/
+   # - xform/水/i/
+  #  - xform/王/g/
+  #  - xform/口/k/
+   # - xform/田/l/
+  #  - xform/山/m/
+  #  - xform/已/n/
+   # - xform/火/o/
+ #   - xform/之/p/
+ #   - xform/金/q/
+   # - xform/白/r/
+   # - xform/木/s/
+    #- xform/禾/t/
+   # - xform/立/u/
+    #- xform/女/v/
+    #- xform/人/w/
+    #- xform/纟/x/
+    #- xform/言/y/
+    #- xform/符/z/
+    #- 'xlit|abcdefghijklmnopqrstuvwxyz~|工子又大月土王目水日口田山已火之金白木禾立女人纟言符～|'
+
+translator:
+  dictionary: wubi86
+  enable_completion: true #逐漸提示
+  enable_charset_filter: true
+  enable_user_dict: false
+  enable_sentence: false
+  enable_encoder: true
+  encode_commit_history: false
+  max_phrase_length: 4
+  preedit_format:
+   # - xform/^([a-z]*)$/$1｜\U$1\E/ 
+   # - "xlit|abcdefghijklmnopqrstuvwxyz|工子又大月土王目水日口田山已火之金白木禾立女人纟言符|"
+  #comment_format:
+    #- "xlit|abcdefghijklmnopqrstuvwxyz|工子又大月土王目水日口田山已火之金白木禾立女人纟言符～|"
+  disable_user_dict_for_patterns:
+    - "^z.*$"
+    - "^yyy.*$"
+
+reverse_lookup:
+  dictionary: pinyin_simp
+  prefix: "z"
+  suffix: "'"
+  tips: 〔拼音〕
+  preedit_format:
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
+    - xform/([jqxy])v/$1u/
+  comment_format:
+    #- "xlit|abcdefghijklmnopqrstuvwxyz|工子又大月土王目水日口田山已火之金白木禾立女人纟言符|"
+punctuator:
+  import_preset: default
+ #s2t/s2tw/s2twp/s2hk
+simplifier:
+  opencc_config: s2t.json
+  option_name: zh_trad
+ 
+key_binder:
+  import_preset: default
+  bindings:
+    #- {accept: Return, send: Escape, when: composing}
+    - {accept: semicolon, send: 2, when: has_menu}
+    #- {accept: apostrophe, send: 3, when: has_menu}
+    - {accept: z, send: 3, when: has_menu}
+    - { accept: KP_Multiply, send: "*", when: always }
+    #*　ｋｅｙｃｏｄｅ１０６
+    - { accept: KP_Add, send: "+", when: always }
+    #+　ｋｅｙｃｏｄｅ１０７
+    - { accept: KP_Subtract, send: "-", when: always }
+    #-　ｋｅｙｃｏｄｅ１０９
+    - { accept: KP_Decimal, send: period, when: always }
+    #.　ｋｅｙｃｏｄｅ１１０　１９０
+    - { accept: KP_Divide, send: "/", when: always }
+    #/　ｋｅｙｃｏｄｅ１１１
+    - { accept: Control+Control_R, toggle: ascii_punct, when: always }
+    - { accept: F1, toggle: zh_trad, when: always }
+
+recognizer:
+  import_preset: default
+  patterns:
+    reverse_lookup: "^z[a-z]*'?$"
